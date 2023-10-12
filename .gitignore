@@ -396,3 +396,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/VisRunOfShow/VisRunOfShowWebApp/appsettings.json
+/VisRunOfShow/VisRunOfShowWebApp/appsettings.Development.json
