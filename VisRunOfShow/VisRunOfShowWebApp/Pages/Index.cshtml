@@ -1,0 +1,99 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Browse Schedules";
+    ViewData["Key"] = Model.Key;
+    //var allItems = Model.Events.SelectMany(ev => ev.Sessions.SelectMany(s => s.Slots)).ToArray();
+    var allSessions = Model.Events.SelectMany(ev => ev.Sessions).ToArray();
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @Model.ErrorMessage
+    </div>
+}
+
+@if (Model.Events is {Length : > 0})
+{
+    <div class="row">
+        <h1 class="display-6 my-3">Schedule by Room and Date</h1>
+        <div class="accordion">
+            @foreach (var room in Model.Tracks)
+            {
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="acc-roomdate-@(room.Track)">
+                        <button class="accordion-button p-3" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#acc-roomdate-body-@(room.Track)"
+                                aria-expanded="false"
+                                aria-controls="acc-roomdate-body-@(room.Track)">
+                            @room.RoomName
+                        </button>
+                    </h2>
+                    <div id="acc-roomdate-body-@(room.Track)"
+                         class="accordion-collapse collapse"
+                         aria-labelledby="acc-roomdate-@(room.Track)">
+                        <div class="accordion-body">
+                            @{
+                                var dates = allSessions.Where(it => it.Track == room)
+                                    .Select(it => it.DateTimeStart!.Value.Date)
+                                    .Distinct().OrderBy(d => d);
+                            }
+                            @foreach (var date in dates)
+                            {
+                                <div class="my-2">
+                                    <a class="btn btn-outline-primary" role="button" asp-page="/Schedule" asp-route-key="@Model.Key" asp-route-trackId="@room.Track" asp-route-date="@date.ToString("yy-MM-dd")">@date.ToString("dddd, yyyy-MM-dd")</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            }
+        </div>
+    </div>
+
+
+    <div class="row">
+        <h1 class="display-6 my-3">Schedule by Day and Event</h1>
+        <div class="accordion">
+            @{
+                var allDates = allSessions
+                    .Select(it => it.DateTimeStart!.Value.Date)
+                    .Distinct().OrderBy(d => d);
+            }
+            @foreach (var date in allDates)
+            {
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="acc-dayevent-@(date.DayOfWeek)">
+                        <button class="accordion-button p-3" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#acc-dayevent-body-@(date.DayOfWeek)"
+                                aria-expanded="false"
+                                aria-controls="acc-dayevent-body-@(date.DayOfWeek)">
+                            @date.ToString("dddd, yyyy-MM-dd")
+                        </button>
+                    </h2>
+                    <div id="acc-dayevent-body-@(date.DayOfWeek)"
+                         class="accordion-collapse collapse"
+                         aria-labelledby="acc-dayevent-@(date.DayOfWeek)">
+                        <div class="accordion-body">
+                            @{
+                                var events = Model.Events.Where(it => it.Sessions.Any(s => s.DateTimeStart!.Value.Date == date));
+
+                            }
+                            @foreach (var ev in events)
+                            {
+                                <div class="my-2">
+                                    <a class="btn btn-outline-primary" role="button" asp-page="/Schedule" asp-route-key="@Model.Key" asp-route-eventPrefix="@ev.EventPrefix" asp-route-date="@date.ToString("yy-MM-dd")">@ev.Event</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            }
+        </div>
+    </div>
+}

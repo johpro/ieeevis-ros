@@ -1,0 +1,196 @@
+﻿@page
+@model IeeeVisRunOfShowWebApp.Pages.ScheduleModel
+@{
+    ViewData["Title"] = "Run of Show";
+    ViewData["Key"] = Model.Key;
+    if (!Model.HasElevatedRights)
+        ViewData["DisableHome"] = true;
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @Html.DisplayFor(m => m.ErrorMessage)
+    </div>
+}
+@if (!string.IsNullOrWhiteSpace(Model.Message))
+{
+    <div class="alert alert-primary" role="alert">
+        @Html.DisplayFor(m => m.Message)
+    </div>
+}
+
+<h4>@Model.CurrentDate.ToString("D")</h4>
+
+@foreach (var session in Model.Sessions)
+{
+    <div class="row mt-3 session-title-row">
+        <div class="col-xl-1 session-times">@session.DateTimeStart!.Value.ToString("HH:mm") - @session.DateTimeEnd!.Value.ToString("HH:mm")</div>
+        <div class="col-xl-11 mt-0">
+            <span class="session-event-title">@session.Event.Event</span><br/>
+            <span class="session-title align-middle">@session.SessionTitle</span>
+            
+        </div>
+    </div>
+
+    <div class="row session-info-row mb-2">
+        <div class="col-xl-1"></div>
+        <div class="col-xl-11">
+            <p class="my-1">
+                <span><small>@session.Track.RoomName</small></span>
+                @if (Model.HasElevatedRights)
+                {
+                    <span class="ms-3"><small>
+                        <a target="_blank" asp-page="/Schedule" asp-route-sessionId="@session.SessionID" asp-route-key="@session.SessionKey">Link for Sharing</a>
+                    </small></span>
+                }
+                <br>
+                <span><strong>Session Chair(s):</strong></span> <span>@string.Join(", ", session.SessionChairs)</span>
+                <span class="ms-2"><strong>Emails:</strong></span> <span>@string.Join(", ", session.SessionChairsEmails)</span>
+            </p>
+            <p class="my-1">
+                <span><strong>Broadcast:</strong></span> <a href="@session.SessionYouTubeURL" target="_blank">@session.SessionYouTubeURL</a>
+                <span class="ms-3"><strong>Fast Forwards:</strong></span> <a href="@session.SessionFFURL" target="_blank">@session.SessionFFURL</a> <br>
+                <span><strong>Sli.do:</strong></span> <a href="@session.SlidoURL" target="_blank">@session.SlidoURL</a> <br>
+                <span class=""><strong>Discord:</strong></span> <a href="@session.DiscordURL" target="_blank">@session.DiscordURL</a>
+            </p>
+            
+            @if (Model.HasElevatedRights)
+            {
+                @if (!string.IsNullOrWhiteSpace(session.ZoomMeetingID))
+                {
+                    <p class="my-1">
+                        <span><strong>Zoom Meeting:</strong></span> <span>@session.ZoomMeetingID</span>
+                        <span class="ms-2"><strong>Password:</strong></span> <span>@session.ZoomPassword</span>
+                        <span class="ms-2"><strong>Join URL:</strong></span> <a href="@session.ZoomURL" target="_blank">@session.ZoomURL</a>
+                    </p>
+
+
+                    <p class="my-1">
+                        <span><strong>Zoom Join as Host URL:</strong></span> 
+                        <a href="#" target="_blank" id="start_url_@session.SessionID" style="word-wrap: break-word;"></a>
+                        <button type="button" class="btn btn-outline-primary btn-sm ms-2" onclick="getStartUrl('@Url.Action("MeetingInfo", "Zoom", new{key = Model.Key, id = session.ZoomMeetingID})', '@session.SessionID');">Retrieve URL</button>
+                        <span id="start_url_msg_@session.SessionID" class="mx-3 badge bg-danger d-none"></span>
+                    </p>
+                }
+            }
+        </div>
+    </div>
+
+    @foreach (var slot in session.Slots)
+    {
+        var duration = (int)Math.Round((slot.End!.Value - slot.Start!.Value).TotalMinutes);
+        <div class="row mt-1">
+
+            <div class="col-xl-1">
+                <div class="ps-3 pt-1 slot-time @slot.GetSlotTypeCss()">
+                    <strong>@slot.Start!.Value.ToString("HH:mm")</strong>
+                    <span class="slot-duration">@duration min</span>
+                    
+                </div>
+
+            </div>
+            <div class="col-xl-11">
+                <span class="slot-title">@slot.Title</span>
+                <p class="my-0 slotsub">
+                <span class="text-dark badge @slot.GetSlotTypeCss()">@slot.SlotType</span>
+                <span class="badge bg-attendance">@slot.AttendanceMode</span>
+                @if (!string.IsNullOrWhiteSpace(slot.PaperUid))
+                {
+                        <span class="ms-3"><span class="badge bg-secondary ms-2" style="user-select: all;">@slot.PaperUid</span></span>
+                }
+                </p>
+                <p class="my-2">
+                    <span><strong>Speaker(s):</strong></span> <span>@string.Join(", ", slot.Contributors!)</span>
+                    <span class="ms-2"><strong>Email(s):</strong></span> <span>@string.Join(", ", slot.ContributorEmails!)</span>
+                    @if (slot.Authors is { Length: > 0})
+                    {
+                        <br>
+                        <span><strong>Authors:</strong></span> <span>@string.Join(", ", slot.Authors)</span>
+                    }
+                </p>
+                @if (slot.RecordingDeclined)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        IMPORTANT: This speaker has declined to be recorded, please stream a placeholder image to YouTube instead for the duration of this item.
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(slot.FileName))
+                {
+                    <span><strong>Filename:</strong></span> <span style="user-select: all;">@slot.FileName</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(slot.SpecialNotes))
+                {
+                    <div class="alert alert-primary" role="alert">
+                        @slot.SpecialNotes
+                    </div>
+
+                }
+                @if (slot.SlotType.Contains("Presentation") &&
+                     (slot.IeeeUrl != null ||
+                      slot.DoiUrl != null ||
+                      slot.PdfUrl != null ||
+                      !string.IsNullOrWhiteSpace(slot.VideoLink) ||
+                      !string.IsNullOrWhiteSpace(slot.FastForwardLink)))
+                {
+                    <p class="my-2">
+                        @if (!string.IsNullOrWhiteSpace(slot.PdfUrl))
+                        {
+                            <a href="@slot.PdfUrl" target="_blank" class="btn btn-outline-secondary btn-sm me-3">PDF</a>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(slot.DoiUrl))
+                        {
+                            <a href="@slot.DoiUrl" target="_blank" class="btn btn-outline-secondary btn-sm me-3">DOI</a>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(slot.IeeeUrl))
+                        {
+                            <a href="@slot.IeeeUrl" target="_blank" class="btn btn-outline-secondary btn-sm me-3">IEEE Xplore</a>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(slot.FastForwardLink))
+                        {
+                            <a href="@slot.FastForwardLink" target="_blank" class="btn btn-outline-secondary btn-sm me-3">Fast Forward</a>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(slot.VideoLink))
+                        {
+                            <a href="@slot.VideoLink" target="_blank" class="btn btn-outline-secondary btn-sm me-0">Pre-Recorded Presentation</a>
+                            
+                        }
+
+                    </p>
+                    
+                }
+            </div>
+        </div>
+
+    }
+}
+
+@if (Model.HasElevatedRights)
+{
+    <script language="javascript">
+        function getStartUrl(url, sessionId){
+            fetch(url).then(r => r.json())
+            .then(r => {
+                if(!r.start_url || r.start_url.length === 0){
+                    throw "could not retrieve url: " + r.message;
+                }
+                const aElement = document.getElementById("start_url_" + sessionId);
+                aElement.href = r.start_url;
+                aElement.innerText = r.start_url;
+                const msgElement = document.getElementById("start_url_msg_" + sessionId);
+                msgElement.innerText = "";
+
+            })
+            .catch(err => {
+                    const msg = err.toString();
+                    const msgElement = document.getElementById("start_url_msg_" + sessionId);
+                    msgElement.innerText = msg;
+                    msgElement.classList.remove("d-none");
+                });
+        }
+    </script>
+}

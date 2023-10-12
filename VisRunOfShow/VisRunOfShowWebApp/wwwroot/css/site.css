@@ -1,0 +1,110 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.session-times {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.session-title {
+    font-size: 1.3rem;
+    font-weight: 500;
+}
+
+.session-event-title {
+    font-size: 0.8rem;
+}
+
+.slot-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.session-title-row {
+    border-top: 0.25rem solid #666666;
+    background-color: #dddddd;
+}
+
+.session-info-row {
+    background-color: #eeeeee;
+}
+
+.slot-time {
+    height: 100%;
+    margin-bottom: 0;
+}
+.slot-duration {
+    display: block;
+}
+@media(max-width: 1199px) {
+    .slot-time {
+        border-top: 0.2rem solid #00000022;
+        margin-bottom: 0.3rem;
+    }
+    .slot-duration {
+        display: inline;
+        margin-left: 1rem;
+    }
+}
+
+.slot-time.person-pres, .badge.person-pres {
+    background-color: #C1CCFF;
+}
+.slot-time.person-qa, .badge.person-qa {
+    background-color: #B9E3FF;
+}
+.slot-time.person-other, .badge.person-other {
+    background-color: #E4CFFF;
+}
+.slot-time.virtual-pres-rec, .badge.virtual-pres-rec {
+    background-color: #fff4c1;
+}
+    .slot-time.virtual-pres, .badge.virtual-pres {
+        background-color: #D9A6A6;
+    }
+    .slot-time.virtual-qa, .badge.virtual-qa {
+        background-color: #ffce5c;
+    }
+.slot-time.onsite-panel, .badge.onsite-panel {
+    background-color: #A6FFD3;
+}
+.slot-time.mixed-panel, .badge.mixed-panel {
+    background-color: #ffc2a8;
+}
+.slot-time.unknown, .badge.unknown {
+    background-color: #d7d5d0;
+}
+
+.badge.bg-attendance {
+    background-color: lightgray;
+    color: #222222
+                    
+}
+
+.slotsub {
+    font-size: 1.1rem;
+}
+
+.bg-header {
+    background-color: #e4cfa2;
+}
+
+.header-img {
+    height: 2rem;
+}
