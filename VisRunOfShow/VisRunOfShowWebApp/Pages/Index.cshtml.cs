@@ -1,6 +1,7 @@
 ﻿using IeeeVisRunOfShowWebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using VisRunOfShowWebApp.Models;
 
 namespace IeeeVisRunOfShowWebApp.Pages
 {
@@ -36,7 +37,7 @@ namespace IeeeVisRunOfShowWebApp.Pages
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(AdminKey) && AdminKey != Key)
+                if (!string.IsNullOrWhiteSpace(AdminKey) && !AuthHelper.SafeCompareEquality(AdminKey, Key))
                 {
                     ErrorMessage = "Access denied";
                     return;

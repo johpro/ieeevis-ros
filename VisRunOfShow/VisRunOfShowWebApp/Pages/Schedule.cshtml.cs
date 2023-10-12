@@ -2,6 +2,7 @@ using IeeeVisRunOfShowWebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using VisRunOfShowWebApp.Models;
 
 namespace IeeeVisRunOfShowWebApp.Pages
 {
@@ -40,7 +41,7 @@ namespace IeeeVisRunOfShowWebApp.Pages
                 var hasAuth = !string.IsNullOrWhiteSpace(IndexModel.AdminKey);
                 if (string.IsNullOrWhiteSpace(SessionId))
                 {
-                    if (hasAuth && IndexModel.AdminKey != Key)
+                    if (hasAuth && !AuthHelper.SafeCompareEquality(IndexModel.AdminKey, Key))
                     {
                         ErrorMessage = "Access denied";
                         return;
@@ -65,9 +66,9 @@ namespace IeeeVisRunOfShowWebApp.Pages
                         Message = "Invalid request";
                         return;
                     }
-                    if (hasAuth && IndexModel.AdminKey != Key)
+                    if (hasAuth && !AuthHelper.SafeCompareEquality(IndexModel.AdminKey, Key))
                     {
-                        if (Key != session.SessionKey)
+                        if (!AuthHelper.SafeCompareEquality(session.SessionKey, Key))
                         {
                             ErrorMessage = "Access denied";
                             return;

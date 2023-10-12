@@ -43,10 +43,11 @@ namespace IeeeVisRunOfShowWebApp.Models
         }
         public Dictionary<string, string?>[] GetItems()
         {
-            var r1 = GoogleJsonResponse.LoadSheet(_dataUrl, "ItemsVISPapers-A").RowsToDict();
-            var r2 = GoogleJsonResponse.LoadSheet(_dataUrl, "ItemsVISSpecial").RowsToDict();
+            var r1 = GoogleJsonResponse.LoadSheet(_dataUrl, "ItemsVIS-A").RowsToDict();
+            //var r2 = GoogleJsonResponse.LoadSheet(_dataUrl, "ItemsVISSpecial").RowsToDict();
             var r3 = GoogleJsonResponse.LoadSheet(_dataUrl, "ItemsEXT").RowsToDict();
-            return r1.Concat(r2).Concat(r3).ToArray();
+            //return r1.Concat(r2).Concat(r3).ToArray();
+            return r1.Concat(r3).ToArray();
         }
 
     }
@@ -62,12 +63,26 @@ namespace IeeeVisRunOfShowWebApp.Models
 
         public Dictionary<string, string?>[] RowsToDict()
         {
-            return table.rows.Length <= 1
-                ? Array.Empty<Dictionary<string, string?>>()
-                : table.rows.Skip(1)
+            var firstRowIsHeader = true;
+            if (table.rows is not { Length: > 0 })
+            {
+                return Array.Empty<Dictionary<string, string?>>();
+            }
+            if (table?.cols is { Length: > 0 })
+            {
+                var firstLabel = table.cols[0].label;
+                if (!string.IsNullOrWhiteSpace(firstLabel) &&
+                    table.rows[0].c.FirstOrDefault()?.v?.ToString() != firstLabel)
+                {
+                    return table.rows.Skip(1)
+                        .Select(r => r.c.Select((c, i) => (c, i))
+                            .ToDictionary(k => table.cols[k.i]?.label ?? Guid.NewGuid().ToString("N"), k => k.c?.v?.ToString())).ToArray();
+                }
+            }
+            return table.rows.Length <= 1 ? Array.Empty<Dictionary<string, string?>>() :
+                table.rows.Skip(1)
                     .Select(r => r.c.Select((c, i) => (c, i))
-                        .Where(k => !string.IsNullOrWhiteSpace(table.rows[0]?.c?[k.i]?.v?.ToString()))
-                        .ToDictionary(k => table.rows[0].c[k.i].v.ToString()!, k => k.c?.v?.ToString())).ToArray();
+                        .ToDictionary(k => table.rows[0].c[k.i]?.v?.ToString() ?? Guid.NewGuid().ToString("N"), k => k.c?.v?.ToString())).ToArray();
         }
 
         public static GoogleJsonResponse LoadSheet(string dataUrl, string sheetName)

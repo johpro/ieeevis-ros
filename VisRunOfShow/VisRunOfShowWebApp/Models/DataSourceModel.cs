@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using VisRunOfShowWebApp.Models;
 
 namespace IeeeVisRunOfShowWebApp.Models
 {
@@ -22,6 +23,7 @@ namespace IeeeVisRunOfShowWebApp.Models
         private readonly string _privateKey;
         private readonly ZoomApi? _zoomApi;
         private readonly Dictionary<long, (ZoomMeetingInfo info, DateTime expiry)> _zoomDict = new();
+        private readonly AuthHelper _authHelper;
 
         public bool HasZoomApi => _zoomApi != null;
 
@@ -33,6 +35,7 @@ namespace IeeeVisRunOfShowWebApp.Models
                 .Build().GetSection("CustomSettings");
             var dataUrl = settings["SheetsLink"];
             _privateKey = settings["PrivateKey"];
+            _authHelper = new AuthHelper(_privateKey);
             AdminKey = settings["AdminKey"];
             _sheetsHelper = new GoogleSheetsHelper(dataUrl);
             try
@@ -92,18 +95,6 @@ namespace IeeeVisRunOfShowWebApp.Models
 
         }
 
-        public static string GetHashSha256(string text)
-        {
-            var bytes = Encoding.UTF8.GetBytes(text);
-            using var sha = SHA256.Create();
-            var hash = sha.ComputeHash(bytes);
-            return Convert.ToHexString(hash).ToLowerInvariant();
-        }
-
-        public string GetSessionKey(string sessionId)
-        {
-            return GetHashSha256(sessionId + _privateKey)[..16];
-        }
 
         public (EventViewModel[] events, TrackViewModel[] tracks) GetData(bool forceRefresh = false)
         {
@@ -226,7 +217,7 @@ namespace IeeeVisRunOfShowWebApp.Models
                             ZoomPassword = dict.GetValueOrDefault("Zoom Password") ?? "",
                             ZoomURL = dict.GetValueOrDefault("Zoom URL") ?? ""
                         };
-                        vm.SessionKey = GetSessionKey(vm.SessionID);
+                        vm.SessionKey = _authHelper.GetKey(vm.SessionID);
                         return vm;
                     }).Where(it => it != null && it.DateTimeStart != null && it.DateTimeEnd != null).ToArray();
                 eventVm.Sessions = sessions;
@@ -282,7 +273,7 @@ namespace IeeeVisRunOfShowWebApp.Models
                                 svm.PdfUrl = $"https://ieeevis.b-cdn.net/vis_2022/pdfs/{svm.PaperUid}.pdf";
                             EnrichHints(svm);
                             return svm;
-                        }).Where(it => it != null && it.Start != null && it.End != null).ToArray();
+                        }).Where(it => it is { Start: not null, End: not null }).ToArray();
                     session.Slots = items;
 
                 }
