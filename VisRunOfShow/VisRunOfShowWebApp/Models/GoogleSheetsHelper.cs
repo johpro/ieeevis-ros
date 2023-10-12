@@ -41,6 +41,10 @@ namespace IeeeVisRunOfShowWebApp.Models
         {
             return GoogleJsonResponse.LoadSheet(_dataUrl, "PapersDB").RowsToDict();
         }
+        public Dictionary<string, string?>[] GetBunnyContent()
+        {
+            return GoogleJsonResponse.LoadSheet(_dataUrl, "BunnyContent").RowsToDict();
+        }
         public Dictionary<string, string?>[] GetItems()
         {
             var r1 = GoogleJsonResponse.LoadSheet(_dataUrl, "ItemsVIS-A").RowsToDict();

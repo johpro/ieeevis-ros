@@ -118,6 +118,7 @@ namespace IeeeVisRunOfShowWebApp.Models
             var ffVideosRaw = _sheetsHelper.GetFfVideos();
             var videosRaw = _sheetsHelper.GetVideos();
             var papersRaw = _sheetsHelper.GetPapers();
+            var bunnyRaw = _sheetsHelper.GetBunnyContent();
             var cache = new SheetsCache
             {
                 Events = eventsRaw,
@@ -127,6 +128,7 @@ namespace IeeeVisRunOfShowWebApp.Models
                 FfVideos = ffVideosRaw,
                 Videos = videosRaw,
                 Papers = papersRaw,
+                Bunny = bunnyRaw,
                 LastCheckTimeUtc = _lastCheckTimeUtc
             };
             Refresh(cache);
@@ -154,6 +156,10 @@ namespace IeeeVisRunOfShowWebApp.Models
             var papers = cache.Papers == null
                 ? new Dictionary<string, Dictionary<string, string?>>()
                 : cache.Papers.Where(k => !string.IsNullOrWhiteSpace(k["UID"]))
+                    .ToDictionary(k => k["UID"]!, v => v);
+            var bunny = cache.Bunny == null
+                ? new Dictionary<string, Dictionary<string, string?>>()
+                : cache.Bunny.Where(k => !string.IsNullOrWhiteSpace(k["UID"]))
                     .ToDictionary(k => k["UID"]!, v => v);
 
 
@@ -209,10 +215,10 @@ namespace IeeeVisRunOfShowWebApp.Models
                             SessionYouTubeURL = dict.GetValueOrDefault("Session YouTube URL") ?? "",
                             SessionFFPlaylistURL = dict.GetValueOrDefault("Session FF Playlist URL") ?? "",
                             SessionFFURL = dict.GetValueOrDefault("Session FF URL") ?? "",
-                            SlidoURL = dict.GetValueOrDefault("Slido URL") ?? "",
-                            DiscordChannel = dict.GetValueOrDefault("Discord Channel") ?? "",
-                            DiscordChannelID = dict.GetValueOrDefault("Discord Channel ID") ?? "",
-                            DiscordURL = dict.GetValueOrDefault("Discord URL") ?? "",
+                            SlidoURL = dict.GetValueOrDefault("Slido URL") ?? track.SlidoURL ?? "",
+                            DiscordChannel = dict.GetValueOrDefault("Discord Channel") ?? track.DiscordChannel ?? "",
+                            DiscordChannelID = dict.GetValueOrDefault("Discord Channel ID") ?? track.DiscordChannelID ?? "",
+                            DiscordURL = dict.GetValueOrDefault("Discord URL") ?? track.DiscordURL ?? "",
                             ZoomMeetingID = dict.GetValueOrDefault("Zoom Meeting ID") ?? "",
                             ZoomPassword = dict.GetValueOrDefault("Zoom Password") ?? "",
                             ZoomURL = dict.GetValueOrDefault("Zoom URL") ?? ""
@@ -253,7 +259,17 @@ namespace IeeeVisRunOfShowWebApp.Models
                             var declinedRaw = dict.GetValueOrDefault("Recording Declined")?.Trim()?.ToLowerInvariant();
                             svm.RecordingDeclined = declinedRaw == "1" || declinedRaw == "y";
                             svm.FastForwardLink = ffVideos.GetValueOrDefault(svm.PaperUid) ?? "";
+                            if (string.IsNullOrEmpty(svm.FastForwardLink))
+                            {
+                                svm.FastForwardLink = bunny.GetValueOrDefault(svm.PaperUid)
+                                    ?.GetValueOrDefault("FF Video Bunny URL") ?? "";
+                            }
                             svm.VideoLink = videos.GetValueOrDefault(svm.PaperUid) ?? "";
+                            if (string.IsNullOrEmpty(svm.VideoLink))
+                            {
+                                svm.VideoLink = bunny.GetValueOrDefault(svm.PaperUid)
+                                    ?.GetValueOrDefault("Video Bunny URL") ?? "";
+                            }
                             var paper = papers.GetValueOrDefault(svm.PaperUid);
                             var doi = paper?.GetValueOrDefault("DOI")?.Trim();
                             var hasPdf = paper?.GetValueOrDefault("Has PDF")?.Trim()?.ToLowerInvariant();
@@ -305,7 +321,7 @@ namespace IeeeVisRunOfShowWebApp.Models
         {
             if (string.IsNullOrWhiteSpace(dt))
                 return null;
-            var pdt =  DateTime.ParseExact(dt.Trim(), "u", null, DateTimeStyles.AssumeUniversal).ToOklahoma();
+            var pdt =  DateTime.ParseExact(dt.Trim(), "u", null, DateTimeStyles.AssumeUniversal).ToMelbourne();
             return pdt;
         }
 

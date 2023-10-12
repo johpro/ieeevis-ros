@@ -13,6 +13,7 @@ namespace IeeeVisRunOfShowWebApp.Models
         public Dictionary<string, string?>[]? FfVideos { get; set; }
         public Dictionary<string, string?>[]? Videos { get; set; }
         public Dictionary<string, string?>[]? Papers { get; set; }
+        public Dictionary<string, string?>[]? Bunny { get; set; }
 
 
         public void Save()

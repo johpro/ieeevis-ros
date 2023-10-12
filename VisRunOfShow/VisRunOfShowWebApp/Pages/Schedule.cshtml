@@ -49,10 +49,19 @@
                 <span class="ms-2"><strong>Emails:</strong></span> <span>@string.Join(", ", session.SessionChairsEmails)</span>
             </p>
             <p class="my-1">
-                <span><strong>Broadcast:</strong></span> <a href="@session.SessionYouTubeURL" target="_blank">@session.SessionYouTubeURL</a>
+                @if (!string.IsNullOrEmpty(session.SessionYouTubeURL))
+                {
+                    <span><strong>Broadcast:</strong></span> <a href="@session.SessionYouTubeURL" target="_blank">@session.SessionYouTubeURL</a>
+                }
                 <span class="ms-3"><strong>Fast Forwards:</strong></span> <a href="@session.SessionFFURL" target="_blank">@session.SessionFFURL</a> <br>
-                <span><strong>Sli.do:</strong></span> <a href="@session.SlidoURL" target="_blank">@session.SlidoURL</a> <br>
-                <span class=""><strong>Discord:</strong></span> <a href="@session.DiscordURL" target="_blank">@session.DiscordURL</a>
+                @if (!string.IsNullOrEmpty(session.SlidoURL))
+                {
+                    <span><strong>Sli.do:</strong></span> <a href="@session.SlidoURL" target="_blank">@session.SlidoURL</a> <br>
+                }
+                @if (!string.IsNullOrEmpty(session.DiscordURL))
+                {
+                    <span class=""><strong>Discord:</strong></span> <a href="@session.DiscordURL" target="_blank">@session.DiscordURL</a>
+                }
             </p>
             
             @if (Model.HasElevatedRights)
@@ -79,6 +88,7 @@
 
     @foreach (var slot in session.Slots)
     {
+        var hasBadge = false;
         var duration = (int)Math.Round((slot.End!.Value - slot.Start!.Value).TotalMinutes);
         <div class="row mt-1">
 
@@ -93,12 +103,20 @@
             <div class="col-xl-11">
                 <span class="slot-title">@slot.Title</span>
                 <p class="my-0 slotsub">
-                <span class="text-dark badge @slot.GetSlotTypeCss()">@slot.SlotType</span>
-                <span class="badge bg-attendance">@slot.AttendanceMode</span>
-                @if (!string.IsNullOrWhiteSpace(slot.PaperUid))
-                {
-                        <span class="ms-3"><span class="badge bg-secondary ms-2" style="user-select: all;">@slot.PaperUid</span></span>
-                }
+                    @if (!string.IsNullOrEmpty(slot.SlotType))
+                    {
+                        hasBadge = true;
+                        <span class="text-dark badge @slot.GetSlotTypeCss()">@slot.SlotType</span>
+                    }
+                    @if (!string.IsNullOrEmpty(slot.AttendanceMode) && slot.AttendanceMode != "Unknown")
+                    {
+                        hasBadge = true;
+                        <span class="badge bg-attendance">@slot.AttendanceMode</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(slot.PaperUid))
+                    {
+                        <span class="@(hasBadge ? "ms-3" : "")"><span class="badge bg-secondary @(hasBadge ? "ms-2" : "")" style="user-select: all;">@slot.PaperUid</span></span>
+                    }
                 </p>
                 <p class="my-2">
                     <span><strong>Speaker(s):</strong></span> <span>@string.Join(", ", slot.Contributors!)</span>
@@ -127,7 +145,7 @@
                     </div>
 
                 }
-                @if (slot.SlotType.Contains("Presentation") &&
+                @if ((string.IsNullOrEmpty(slot.SlotType) || slot.SlotType.Contains("Presentation")) &&
                      (slot.IeeeUrl != null ||
                       slot.DoiUrl != null ||
                       slot.PdfUrl != null ||
