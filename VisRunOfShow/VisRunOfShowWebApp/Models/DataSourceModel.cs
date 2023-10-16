@@ -223,6 +223,8 @@ namespace IeeeVisRunOfShowWebApp.Models
                             ZoomPassword = dict.GetValueOrDefault("Zoom Password") ?? "",
                             ZoomURL = dict.GetValueOrDefault("Zoom URL") ?? ""
                         };
+                        if (string.IsNullOrWhiteSpace(vm.SessionFFURL))
+                            vm.SessionFFURL = ffVideos.GetValueOrDefault(vm.SessionID) ?? "";
                         vm.SessionKey = _authHelper.GetKey(vm.SessionID);
                         return vm;
                     }).Where(it => it != null && it.DateTimeStart != null && it.DateTimeEnd != null).ToArray();
@@ -286,7 +288,7 @@ namespace IeeeVisRunOfShowWebApp.Models
                             svm.HasPdf = hasPdf is "y" or "1";
                             svm.HasVideo = hasVideo is "y" or "1";
                             if (svm.HasPdf)
-                                svm.PdfUrl = $"https://ieeevis.b-cdn.net/vis_2022/pdfs/{svm.PaperUid}.pdf";
+                                svm.PdfUrl = $"https://ieeevis.b-cdn.net/vis_2023/pdfs/{svm.PaperUid}.pdf";
                             EnrichHints(svm);
                             return svm;
                         }).Where(it => it is { Start: not null, End: not null }).ToArray();

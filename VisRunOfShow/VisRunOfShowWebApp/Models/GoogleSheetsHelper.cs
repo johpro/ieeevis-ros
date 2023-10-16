@@ -78,7 +78,7 @@ namespace IeeeVisRunOfShowWebApp.Models
                 if (!string.IsNullOrWhiteSpace(firstLabel) &&
                     table.rows[0].c.FirstOrDefault()?.v?.ToString() != firstLabel)
                 {
-                    return table.rows.Skip(1)
+                    return table.rows
                         .Select(r => r.c.Select((c, i) => (c, i))
                             .ToDictionary(k => table.cols[k.i]?.label ?? Guid.NewGuid().ToString("N"), k => k.c?.v?.ToString())).ToArray();
                 }
